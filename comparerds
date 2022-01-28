@@ -1,0 +1,23 @@
+#!/bin/bash
+clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="select concat('select count(1) from ',database,'.',name,';') from \`system\`.dictionaries d where status <>'LOADED'" >/d2/bjalpha1225/rds.list
+cat /d2/bjalpha1225/rds.list |while read LINE
+do
+    echo "$LINE"
+    mysql -h rm-2zenj072jdxy4673a.mysql.rds.aliyuncs.com -P3306 -upuser -p'xxxxx' -e "$LINE" >/dev/null 2>&1
+    if [ $? = 0 ];
+    then
+    echo "$LINE(mysql)" >>/d2/bjalpha1225/checkdb/exsits.txt
+    elif [ $? = 1 ];
+    then
+    echo "$LINE(mysql)" >>/d2/bjalpha1225/checkdb/notexsits.txt
+    fi
+
+    mysql -h 172.19.39.60 -P3306 -upuser -p'xxxxx' -e "$LINE" >/dev/null 2>&1
+    if [ $? = 0 ];
+    then
+    echo "$LINE(mysql-old)" >>/d2/bjalpha1225/checkdb/exsits.txt
+    elif [ $? = 1 ];
+    then
+    echo "$LINE(mysql-old)" >>/d2/bjalpha1225/checkdb/notexsits.txt
+    fi
+done
