@@ -1,0 +1,28 @@
+#!/bin/bash
+mysql -h rm-uf6waupkq911okk4u35910.mysql.rds.aliyuncs.com -P3306 -upuser -p'xxxxx' -e "SHOW databases" >/root/luowei/cloud/db.list
+cat /dev/null >/root/luowei/cloud/table.list
+cat /dev/null >/root/luowei/cloud/list.log
+checkdb(){
+for i in `cat /root/luowei/db.list`
+do
+	mysql -h rm-uf6waupkq911okk4u35910.mysql.rds.aliyuncs.com -P3306 -upuser -p'xxxxx' --skip-column-names -e "select concat(table_schema,'.',table_name) from information_schema.tables where table_schema='$i' and table_type='base table' and table_name like '%element_relation'" >>/root/luowei/cloud/table.list;
+done
+}
+
+checktable(){
+for i in `cat /root/luowei/table.list`
+do
+	a=`mysql -h rm-uf6waupkq911okk4u35910.mysql.rds.aliyuncs.com -P3306 -upuser -p'xxxxx' --skip-column-names -e "select count(1) from ${i} where element_type = 'LST' and relation_element_type = 'DAT_CLICKHOUSE'"`;
+	if [ $a = 0 ];
+	then
+	echo $i >>/root/luowei/cloud/list.log
+	echo $a >>/root/luowei/cloud/list.log
+	elif [ $a = 1 ];
+	then
+	echo $i >>/root/luowei/cloud/list1.log
+	echo $a >>/root/luowei/cloud/list1.log
+	fi
+done
+}
+checkdb
+checktable
