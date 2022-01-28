@@ -1,0 +1,26 @@
+#!/bin/bash
+start_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
+Date=`date +%Y%m%d%H%M%S`
+
+dumpck() {
+ mkdir -p /d2/bjalpha1225/bakalpha$Date/create$i && mkdir -p /d2/bjalpha1225/bakalpha$Date/csv$i
+ clickhouse-client --host cc-uf6u42054k1bma240o.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="SHOW tables from $i" >/d2/bjalpha1225/bakalpha$Date/$i.list
+ cat /d2/bjalpha1225/bakalpha$Date/$i.list|while read LINE
+ do
+  clickhouse-client --host cc-uf6u42054k1bma240o.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="SHOW CREATE TABLE $i.$LINE" >/d2/bjalpha1225/bakalpha$Date/create$i/$LINE.sql
+  clickhouse-client --host cc-uf6u42054k1bma240o.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="select * from $i.$LINE FORMAT CSV" >/d2/bjalpha1225/bakalpha$Date/csv$i/$LINE.csv
+ done
+}
+
+mkdir -p /d2/bjalpha1225/bakalpha$Date
+clickhouse-client --host cc-uf6u42054k1bma240o.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="SHOW databases"|grep -v 'system' >/d2/bjalpha1225/bakalpha$Date/db.list
+for i in `cat /d2/bjalpha1225/bakalpha$Date/db.list`
+do
+dumpck
+done
+
+#tar -zcvf /d2/bjalpha1225/bakcloud$Date.tgz /d2/bjalpha1225/bakcloud$Date && rm -rf /d2/bjalpha1225/bakalpha$Date
+#find /d2/bjalpha1225 -type f -mtime +7|xargs rm -rf
+finish_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
+duration=$(($(($(date +%s -d "$finish_time")-$(date +%s -d "$start_time")))))
+echo -e "\033[41m 本次执行脚本耗时: $duration秒 \033[0m"
