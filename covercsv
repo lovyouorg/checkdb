@@ -1,0 +1,22 @@
+#!/bin/bash
+#恢复非字典表
+start_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
+for i in `cat /d2/bjalpha1219/bakalpha20211219114427/db.list`
+do
+#  clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="drop database $i"
+#  clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="create database $i"
+coverck(){
+#    cd /d2/bjalpha1219/bakalpha20211219114427/create$i;sed -i 's/\\//g' *.sql;
+    cd /d2/bjalpha1219/bakalpha20211219114427/create$i;
+    cat /d2/bjalpha1219/bakalpha20211219114427/$i.list|while read LINE
+    do
+#    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="drop table $i.$LINE"
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' -d $i </d2/bjalpha1219/bakalpha20211219114427/create$i/$LINE.sql
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="insert into $i.$LINE FORMAT CSV" </d2/bjalpha1219/bakalpha20211219114427/csv$i/$LINE.csv
+    done
+}
+coverck
+done
+finish_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
+duration=$(($(($(date +%s -d "$finish_time")-$(date +%s -d "$start_time")))))
+echo -e "\033[41m 本次执行脚本耗时: $duration秒 \033[0m"
