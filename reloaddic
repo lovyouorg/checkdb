@@ -1,0 +1,51 @@
+#!/bin/bash
+#clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="SHOW databases"|grep -v 'system' >/d2/bjalpha1225/checkdb.list
+for i in `cat /d2/bjalpha1225/checkdb.list`
+do
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="SHOW tables from $i" >/d2/bjalpha1225/checkdb/$i.list
+checkdic(){
+    cat /d2/bjalpha1225/checkdb/$i.list|while read LINE
+    do
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="select count(1) from $i.$LINE" >/dev/null 2>&1
+    if [ $? = 0 ];
+    then
+    echo "$i.$LINE(ck)" >>/d2/bjalpha1225/checkdb/exsits.txt
+    elif [ $? = 1 ];
+    then
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="system reload dictionary $i.$LINE"
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="system reload dictionary $i.$LINE"
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="system reload dictionary $i.$LINE"
+#    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="system reload dictionary $i.$LINE"
+#    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="system reload dictionary $i.$LINE"
+    echo "system reload dictionary $i.$LINE 5 times" >>/d2/bjalpha1225/checkdb/notexsits.txt
+    echo "$i.$LINE(ck)" >>/d2/bjalpha1225/checkdb/notexsits.txt
+    else
+         echo "What happend on $i.$LINE?" >> /d2/bjalpha1225/checkdb/3.txt
+    fi
+
+    mysql -h rm-2zenj072jdxy4673a.mysql.rds.aliyuncs.com -P3306 -upuser -p'xxxxx' -e "select count(1) from $i.$LINE" >/dev/null 2>&1
+    if [ $? = 0 ];
+    then
+    echo "$i.$LINE(mysql)" >>/d2/bjalpha1225/checkdb/exsits.txt
+    elif [ $? = 1 ];
+    then
+    echo "$i.$LINE(mysql)" >>/d2/bjalpha1225/checkdb/notexsits.txt
+    else
+         echo "What happend on $i.$LINE(m)?" >> /d2/bjalpha1225/checkdb/3.txt
+    fi
+
+    mysql -h 172.19.39.60 -P3306 -upuser -p'xxxxx' -e "select count(1) from $i.$LINE" >/dev/null 2>&1
+    if [ $? = 0 ];
+    then
+    echo "$i.$LINE(mysql-old)" >>/d2/bjalpha1225/checkdb/exsits.txt
+    elif [ $? = 1 ];
+    then
+    echo "$i.$LINE(mysql-old)" >>/d2/bjalpha1225/checkdb/notexsits.txt
+    else
+         echo "What happend on $i.$LINE(m)?" >> /d2/bjalpha1225/checkdb/3.txt
+    fi
+    done
+}
+
+checkdic
+done
