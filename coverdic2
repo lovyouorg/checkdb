@@ -1,0 +1,38 @@
+#!/bin/bash
+#恢复字典表
+start_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
+for i in `cat /d2/bjalpha1225/bakalpha20211224233001/db.list`
+do
+#  clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="drop database $i"
+#  clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="create database $i"
+  echo "Database $i ===============================================" >>/d2/coverckdic1.log
+coverck(){
+#    mkdir -p /d2/bjalpha1225/bakalpha20211224233001/create$i/1;
+#    cd /d2/bjalpha1225/bakalpha20211224233001/create$i;grep -l 172.19.39.60 *.sql|xargs -I file mv file 1 
+#    sed -i 's/\\n/\n/g' /d2/bjalpha1225/bakalpha20211224233001/create$i/1/*.sql;
+#    sed -i 's/\\//g' /d2/bjalpha1225/bakalpha20211224233001/create$i/1/*.sql;
+#    sed -i 's/!Oz6G%@zn/TjF#%hoPr7kvMr/g' /d2/bjalpha1225/bakalpha20211224233001/create$i/1/*.sql;
+#    sed -i 's/172.19.39.60/rm-2zenj072jdxy4673a.mysql.rds.aliyuncs.com/g' /d2/bjalpha1225/bakalpha20211224233001/create$i/1/*.sql;
+    cat /d2/bjalpha1225/bakalpha20211224233001/$i.list|while read LINE
+    do
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="drop dictionary $i.$LINE"
+    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' -d $i </d2/bjalpha1225/bakalpha20211224233001/create$i/1/$LINE.sql
+    if [ $? = 0 ];
+    then
+    echo "$i.$LINE is imported" >>/d2/coverckdic1.log
+    elif [ $? = 1 ];
+    then
+    echo "$i.$LINE is not dictionary" >>/d2/coverckdic1.log
+    fi
+#    echo "$i.$LINE is beginning" >>/d2/coverckdic.log
+#    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="drop table $i.$LINE"
+#    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' -d $i </d2/bjalpha1225/bakalpha20211224233001/create$i/$LINE.sql
+#    clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'xxxxx' --query="insert into $i.$LINE FORMAT CSV" </d2/bjalpha1225/bakalpha20211224233001/csv$i/$LINE.csv
+#    echo "$i.$LINE is over" >>/d2/coverckdic.log
+    done
+}
+coverck
+done
+finish_time=`date --date='0 days ago' "+%Y-%m-%d %H:%M:%S"`
+duration=$(($(($(date +%s -d "$finish_time")-$(date +%s -d "$start_time")))))
+echo -e "\033[41m 本次执行脚本耗时: $duration秒 \033[0m"
