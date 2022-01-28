@@ -1,0 +1,17 @@
+#!/bin/bash
+#select concat('show grants for ',"'",user,"'",'@',"'",host,"'",';') from mysql.user;
+#mysql -N -h 172.19.39.60 -P33060 -upuser -p'xxxxx' -e "select concat('show grants for ',user,'@',host,';') from mysql.user;" >grant.sql
+#sed -i "s/%/'%'/g" /d2/bjalpha1225/grant.sql
+#sed -i "s/localhost/'localhost'/g" /d2/bjalpha1225/grant.sql
+#sed -i 's/\.//g' /d2/bjalpha1225/grant.sql
+cat /d2/bjalpha1225/grant.sql |while read LINE
+do
+    echo "$LINE" >>gall.txt
+    v=`echo -n $LINE|md5sum|awk '{print $1}'`
+    echo password:$v >>gall.txt
+    mysql -h 172.19.39.60 -P33060 -upuser -p'xxxxx' -e "${LINE}" >gall.txt1
+    sed "s/^GRANT.*/& identified by $v;/g" gall.txt1 >> gall.txt 
+    echo '---------------------------------------------------------' >>gall.txt
+#    sed 's/$/identified by ${w};' $v >>gall.sql
+done
+#sed -i 's/$/&;/g' /d2/bjalpha1225/gall.txt
