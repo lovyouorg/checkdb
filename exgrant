@@ -1,0 +1,16 @@
+#!/bin/bash
+#select concat('show grants for ',user,'@',"'",host,"'",';') from mysql.user;
+mysql -N -h 172.19.39.60 -P33060 -upuser -p'!Oz6G%@zn' -e "select concat('show grants for ',user,'@',host,';') from mysql.user;" >grant.sql
+sed -i "s/%/'%'/g" /d2/bjalpha1225/grant.sql
+sed -i "s/localhost/'localhost'/g" /d2/bjalpha1225/grant.sql
+sed -i 's/\.//g' /d2/bjalpha1225/grant.sql
+cat /d2/bjalpha1225/grant.sql |while read LINE
+do
+    echo "$LINE"
+    v=`mysql -h 172.19.39.60 -P33060 -upuser -p'!Oz6G%@zn' -e "${LINE}"`
+    w=`echo -n $LINE|md5sum|awk '{print $1}' `
+    echo $w
+    echo $v
+#    sed 's/$/identified by ${w};' $v >>gall.sql
+done
+#sed -i 's/$/&;/g' /d2/bjalpha1225/gall.sql
