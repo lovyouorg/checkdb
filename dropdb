@@ -1,0 +1,6 @@
+#!/bin/bash
+#clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'a5xXKxrxGeLbBRJu' --query="SHOW databases|grep -v system" > /d2/bjalpha.list
+for i in `cat /d2/bjalpha.list`
+do
+   clickhouse-client --host cc-2ze4glq751vhwol1m.ads.rds.aliyuncs.com --port 3306 --user admin --password 'a5xXKxrxGeLbBRJu' --query="drop database $i"
+done
